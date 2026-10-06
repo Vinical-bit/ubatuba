@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ubatuba em família</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deep:#0D2B45; --teal:#1E5A6E; --foam:#6BA7A0; --sand:#DCC8AA; --sky:#B7D4E6;
+    --ink:#F3F8FA; --ink-soft:#C9DDE8;
+    --display:'Bricolage Grotesque','Avenir Next','Segoe UI',system-ui,sans-serif;
+    --body:'Figtree','Segoe UI',system-ui,-apple-system,sans-serif;
+    --fill:rgba(13,43,69,.52);
+    color-scheme:dark;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 80px)}
+  *,*::before,*::after{box-sizing:inherit}
+  body{margin:0;background:var(--deep);color:var(--ink);font-family:var(--body);font-size:1.02rem;line-height:1.55;-webkit-font-smoothing:antialiased}
+
+  /* ---------- Cena de fundo: praia vista de cima ---------- */
+  .scene{position:fixed;inset:0;z-index:-1;overflow:hidden;background:var(--deep)}
+  .scene svg{width:100%;height:100%;display:block}
+  .scene::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,43,69,.5),rgba(13,43,69,.22) 38%,rgba(13,43,69,.55))}
+
+  /* ---------- Vidro ---------- */
+  .glass{
+    position:relative;border-radius:28px;
+    background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.03)),var(--fill);
+    -webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 24px 50px rgba(4,18,31,.38);
+  }
+  .glass::before{
+    content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+    background:linear-gradient(130deg,rgba(255,255,255,.6),rgba(183,212,230,.12) 42%,rgba(107,167,160,.75));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:18px 16px 56px}
+
+  /* ---------- Cabeçalho ---------- */
+  .hero{padding:clamp(22px,5vw,40px);margin-top:10px}
+  .hero h1{font-family:var(--display);font-weight:800;font-size:clamp(2.5rem,8vw,4.6rem);line-height:.98;letter-spacing:-.025em;margin:0 0 .5rem}
+  .hero p{margin:.15rem 0;color:var(--ink-soft);font-size:1.08rem;max-width:34rem}
+  .strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:1.6rem}
+  .tile{border-radius:20px;padding:.85rem .9rem;background:rgba(183,212,230,.13);border:1px solid rgba(183,212,230,.26)}
+  .tile b{font-family:var(--display);font-size:1.02rem;display:block}
+  .tile .t-top{display:flex;align-items:center;justify-content:space-between;gap:.4rem}
+  .tile .deg{font-family:var(--display);font-weight:700;font-size:1.25rem;margin-top:.15rem}
+  .tile .rain{font-size:.88rem;color:var(--ink-soft)}
+  .tile .hol{font-size:.8rem;color:var(--sand);font-weight:600}
+
+  /* ---------- Abas ---------- */
+  .tabs{position:sticky;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:20;display:flex;gap:6px;padding:6px;margin:18px 0 20px;border-radius:999px}
+  .tabs button{flex:1;font:600 .98rem var(--body);color:var(--ink);background:transparent;border:0;border-radius:999px;padding:.7rem .6rem;cursor:pointer;transition:background .2s,color .2s}
+  .tabs button[aria-selected="true"]{background:var(--sand);color:var(--deep)}
+  button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+  .panel[hidden]{display:none}
+
+  /* ---------- Roteiro ---------- */
+  .note{padding:1rem 1.2rem;border-radius:20px;background:rgba(220,200,170,.14);border:1px solid rgba(220,200,170,.4);margin-bottom:18px;font-size:.98rem}
+  .note b{color:var(--sand)}
+  .day{padding:clamp(18px,4vw,30px);margin-bottom:18px}
+  .day-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem}
+  .day-head h2{font-family:var(--display);font-weight:800;font-size:clamp(1.7rem,5vw,2.3rem);margin:0;letter-spacing:-.02em;line-height:1.05}
+  .day-head .sub{color:var(--ink-soft);font-size:.95rem}
+  .day-wx{display:flex;align-items:center;gap:.6rem;padding:.5rem .9rem;border-radius:999px;background:rgba(183,212,230,.14);border:1px solid rgba(183,212,230,.28)}
+  .day-wx strong{font-family:var(--display);font-size:1.1rem}
+  .day-wx span{font-size:.88rem;color:var(--ink-soft)}
+  .stop{display:grid;grid-template-columns:5.4rem 1fr auto;gap:.5rem 1rem;padding:1.05rem 0;border-top:1px solid rgba(255,255,255,.14)}
+  .stop:first-of-type{border-top:0}
+  .hora{font-family:var(--display);font-weight:700;font-size:1.08rem;color:var(--sand);line-height:1.3}
+  .stop h3{font-family:var(--display);font-weight:700;font-size:1.22rem;margin:0 0 .2rem;line-height:1.2}
+  .stop p{margin:.1rem 0 .55rem;color:var(--ink-soft);font-size:.98rem}
+  .chips{display:flex;flex-wrap:wrap;gap:.4rem}
+  .chip{font-size:.84rem;font-weight:600;padding:.18rem .65rem;border-radius:999px;background:rgba(183,212,230,.15);border:1px solid rgba(183,212,230,.3)}
+  .chip.free{background:rgba(107,167,160,.28);border-color:rgba(107,167,160,.6)}
+  .chip.who{background:rgba(220,200,170,.16);border-color:rgba(220,200,170,.45);color:var(--sand)}
+  .wx{display:flex;flex-direction:column;align-items:center;gap:.1rem;min-width:3.2rem;font-size:.9rem;font-weight:600;color:var(--ink-soft)}
+  .stop.reserva{opacity:.9}
+  .stop.reserva h3{font-weight:600}
+  @media (max-width:600px){
+    .stop{grid-template-columns:1fr auto}
+    .hora{grid-column:1/-1;margin-bottom:-.2rem}
+    .strip{gap:7px}
+    .tile{padding:.7rem .6rem}
+  }
+
+  /* ---------- Custos ---------- */
+  .total{padding:clamp(20px,4vw,32px);margin-bottom:18px}
+  .total .big{font-family:var(--display);font-weight:800;font-size:clamp(2.4rem,9vw,3.8rem);letter-spacing:-.025em;line-height:1}
+  .total p{margin:.4rem 0 0;color:var(--ink-soft)}
+  .break{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+  .legend{display:flex;flex-wrap:wrap;gap:.5rem;margin:.9rem 0 0;font-size:.88rem;color:var(--ink-soft)}
+  .tag{display:inline-block;font-size:.76rem;font-weight:700;padding:.08rem .5rem;border-radius:999px}
+  .tag.pesquisado{background:rgba(107,167,160,.3);color:#D8F0EC}
+  .tag.estimativa{background:rgba(220,200,170,.25);color:var(--sand)}
+  .tag.preencher{background:transparent;border:1px dashed var(--sky);color:var(--sky)}
+  .tag.conferir{background:rgba(183,212,230,.18);color:var(--sky)}
+  .cost{padding:clamp(18px,4vw,26px);margin-bottom:14px}
+  .cost-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap}
+  .cost h3{font-family:var(--display);font-weight:700;font-size:1.3rem;margin:0}
+  .cost .when{color:var(--ink-soft);font-size:.92rem}
+  .fields{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:.9rem 0 .6rem}
+  .field label{display:flex;justify-content:space-between;align-items:center;gap:.3rem;font-size:.88rem;font-weight:600;margin-bottom:.3rem;flex-wrap:wrap}
+  .field .box{display:flex;align-items:center;gap:.3rem;padding:.4rem .7rem;border-radius:14px;background:rgba(5,20,34,.45);border:1px solid rgba(183,212,230,.3)}
+  .field .box span{color:var(--ink-soft);font-size:.9rem}
+  .field input{width:100%;min-width:0;background:transparent;border:0;color:var(--ink);font:600 1.05rem var(--body);padding:.15rem 0}
+  .cost .sum{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+  .cost .sum b{font-family:var(--display);font-size:1.35rem}
+  .cost .nota{margin:0;color:var(--ink-soft);font-size:.92rem;flex:1 1 14rem}
+  .ghost{font:600 .95rem var(--body);color:var(--ink);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:.6rem 1.1rem;cursor:pointer;margin-top:.4rem}
+  .fine{color:var(--ink-soft);font-size:.9rem;margin:1rem .2rem 0}
+  @media (max-width:560px){.fields{grid-template-columns:1fr}}
+
+  /* ---------- Aprender: cada lugar com a cara do lugar ---------- */
+  .place{overflow:hidden;margin-bottom:22px}
+  .place .art{height:clamp(170px,32vw,240px);position:relative;border-radius:27px 27px 0 0;overflow:hidden}
+  .place .art svg{width:100%;height:100%;display:block}
+  .place .body{padding:clamp(18px,4vw,30px)}
+  .place h2{font-family:var(--display);font-weight:800;font-size:clamp(1.8rem,5.5vw,2.5rem);margin:0 0 .35rem;letter-spacing:-.02em;line-height:1.05}
+  .place .hook{margin:0 0 1rem;font-size:1.08rem;max-width:40rem}
+  .place h4{font-family:var(--display);font-weight:700;font-size:1.12rem;margin:1.3rem 0 .4rem}
+  .place ul{margin:.2rem 0;padding-left:1.15rem}
+  .place li{margin:.35rem 0}
+  details summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:.55rem;padding:.65rem 1.2rem;border-radius:999px;font-weight:700;border:1px solid rgba(255,255,255,.34);background:rgba(255,255,255,.14)}
+  details summary::-webkit-details-marker{display:none}
+  details summary .less{display:none}
+  details[open] summary .more{display:none}
+  details[open] summary .less{display:inline}
+  details summary .chev{transition:transform .25s}
+  details[open] summary .chev{transform:rotate(180deg)}
+  .ask{margin-top:1.2rem;padding:1rem 1.2rem;border-radius:18px;background:rgba(255,255,255,.1);border:1px dashed rgba(255,255,255,.4)}
+  .ask b{font-family:var(--display)}
+
+  .t-gruta{--fill:rgba(12,18,22,.7)}
+  .t-gruta::before{background:linear-gradient(130deg,rgba(200,215,205,.5),rgba(80,100,90,.15) 45%,rgba(120,150,110,.7))}
+  .t-gruta .hook,.t-gruta p,.t-gruta li{color:#D6E0DC}
+  .t-gruta h4{color:#A9C8A0}
+  .t-aquario{--fill:rgba(4,24,44,.66)}
+  .t-aquario h4{color:var(--sky)}
+  .t-rita{--fill:rgba(30,90,110,.4)}
+  .t-rita::before{background:linear-gradient(130deg,rgba(255,255,255,.8),rgba(255,255,255,.2) 45%,rgba(220,200,170,.8))}
+  .t-rita h4{color:var(--sand)}
+
+  .drip{animation:drip 3.2s ease-in infinite}
+  .drip.d2{animation-delay:1.1s;animation-duration:3.8s}
+  .drip.d3{animation-delay:2.1s;animation-duration:2.9s}
+  @keyframes drip{0%{transform:translateY(0);opacity:0}12%{opacity:1}82%{opacity:1}100%{transform:translateY(128px);opacity:0}}
+  .ripple{transform-box:fill-box;transform-origin:center;animation:ripple 3.2s ease-out infinite}
+  .ripple.r2{animation-delay:1.1s}
+  @keyframes ripple{0%,70%{transform:scale(.2);opacity:0}78%{opacity:.6}100%{transform:scale(1);opacity:0}}
+  .bub{animation:rise 7s ease-in infinite}
+  .bub.b2{animation-delay:1.6s;animation-duration:8.5s}
+  .bub.b3{animation-delay:3.2s;animation-duration:6.5s}
+  .bub.b4{animation-delay:4.4s;animation-duration:9s}
+  @keyframes rise{0%{transform:translateY(0);opacity:0}15%{opacity:.75}100%{transform:translateY(-190px);opacity:0}}
+  .fish{animation:swim 9s ease-in-out infinite alternate}
+  .fish.f2{animation-duration:12s;animation-direction:alternate-reverse}
+  @keyframes swim{from{transform:translateX(-50px)}to{transform:translateX(60px)}}
+  .glint{animation:glint 4.5s ease-in-out infinite alternate}
+  .glint.g2{animation-delay:1.5s}
+  @keyframes glint{from{opacity:.15}to{opacity:.6}}
+
+  footer{margin-top:28px;text-align:center;color:var(--ink-soft);font-size:.9rem}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <svg viewBox="0 0 1200 1600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bgWater" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#6BA7A0"/><stop offset=".3" stop-color="#2a7c86"/><stop offset=".65" stop-color="#1E5A6E"/><stop offset="1" stop-color="#0D2B45"/>
+      </linearGradient>
+      <linearGradient id="bgSand" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#e4d3b6"/><stop offset=".7" stop-color="#cdb78f"/><stop offset="1" stop-color="#a98f68"/>
+      </linearGradient>
+      <filter id="bgTex" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.008 0.02" numOctaves="3" seed="4"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.66  0 0 0 0 0.63  0 0 0 1.2 -0.4"/>
+      </filter>
+      <filter id="bgFoam" x="-10%" y="-5%" width="125%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.02 0.06" numOctaves="3" seed="9" result="t"/>
+        <feDisplacementMap in="SourceGraphic" in2="t" scale="46" xChannelSelector="R" yChannelSelector="G" result="d"/>
+        <feGaussianBlur in="d" stdDeviation="2.2"/>
+      </filter>
+      <path id="bgShore" d="M0 0 H420 C330 190 500 340 410 540 C330 710 520 880 440 1080 C380 1240 520 1420 450 1600 H0 Z"/>
+    </defs>
+    <rect width="1200" height="1600" fill="url(#bgWater)"/>
+    <rect width="1200" height="1600" filter="url(#bgTex)" opacity=".45"/>
+    <use href="#bgShore" fill="none" stroke="#fff" stroke-width="64" opacity=".28" filter="url(#bgFoam)" transform="translate(70,0)"/>
+    <use href="#bgShore" fill="none" stroke="#fff" stroke-width="30" opacity=".8" filter="url(#bgFoam)" transform="translate(22,0)"/>
+    <use href="#bgShore" fill="none" stroke="#fff" stroke-width="9" opacity=".5" filter="url(#bgFoam)" transform="translate(110,0)"/>
+    <use href="#bgShore" fill="url(#bgSand)"/>
+    <g transform="translate(880 760) rotate(-8)" opacity=".92">
+      <path d="M-120 18 Q-30 6 -6 2 L-6 8 Q-40 16 -120 30 Z" fill="#fff" opacity=".35"/>
+      <ellipse cx="0" cy="4" rx="14" ry="6" fill="#f4f9fb"/>
+    </g>
+  </svg>
+</div>
+
+<main class="wrap">
+
+  <header class="hero glass">
+    <h1>Ubatuba em família</h1>
+    <p>10 a 12 de outubro de 2026</p>
+    <p>Três adultos, uma irmã de 12 anos e um irmão de 4, com base no Perequê-Açu.</p>
+    <div class="strip" id="strip" aria-label="Previsão do tempo para os três dias"></div>
+  </header>
+
+  <nav class="tabs glass" role="tablist" aria-label="Seções do site">
+    <button role="tab" id="tab-roteiro" aria-controls="p-roteiro" aria-selected="true">Roteiro</button>
+    <button role="tab" id="tab-custos" aria-controls="p-custos" aria-selected="false" tabindex="-1">Custos</button>
+    <button role="tab" id="tab-aprender" aria-controls="p-aprender" aria-selected="false" tabindex="-1">Aprender</button>
+  </nav>
+
+  <!-- ================= ROTEIRO ================= -->
+  <section class="panel" id="p-roteiro" role="tabpanel" aria-labelledby="tab-roteiro">
+    <div class="note"><b>Plano B para chuva:</b> o Aquário é coberto e pode trocar de dia com Santa Rita, que é só praia. A previsão é de 6 de outubro, então vale olhar de novo na sexta-feira. O ícone de cada passeio mostra o tempo do dia inteiro, e a temperatura com "≈" é uma estimativa entre a mínima e a máxima.</div>
+    <div id="days"></div>
+  </section>
+
+  <!-- ================= CUSTOS ================= -->
+  <section class="panel" id="p-custos" role="tabpanel" aria-labelledby="tab-custos" hidden>
+    <div class="total glass">
+      <div class="big" id="totalGeral">R$ 0</div>
+      <p>Total dos passeios para as 5 pessoas, com ingressos, estacionamento e alimentação.</p>
+      <div class="break" id="break"></div>
+      <div class="legend">
+        <span><span class="tag pesquisado">pesquisado</span> achei em fontes na internet</span>
+        <span><span class="tag estimativa">estimativa</span> é um valor meu, ajuste à vontade</span>
+        <span><span class="tag preencher">a preencher</span> falta o valor</span>
+      </div>
+    </div>
+    <div id="costs"></div>
+    <button class="ghost" id="reset" type="button">Voltar aos valores originais</button>
+    <p class="fine">Fora desta conta ficaram hospedagem, combustível e refeições que não são de passeio (café da manhã, jantar). Os valores que você mudar ficam salvos neste aparelho.</p>
+  </section>
+
+  <!-- ================= APRENDER ================= -->
+  <section class="panel" id="p-aprender" role="tabpanel" aria-labelledby="tab-aprender" hidden>
+
+    <!-- Gruta que Chora -->
+    <article class="place glass t-gruta">
+      <div class="art" aria-hidden="true">
+        <svg viewBox="0 0 600 220" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gRock" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c1317"/><stop offset="1" stop-color="#2b3b43"/></linearGradient>
+            <radialGradient id="gMouth" cx=".5" cy="1" r=".9"><stop offset="0" stop-color="#6BA7A0" stop-opacity=".5"/><stop offset="1" stop-color="#050a0d"/></radialGradient>
+            <filter id="gGrain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="3"/><feColorMatrix type="matrix" values="0 0 0 0 .8  0 0 0 0 .85  0 0 0 0 .85  0 0 0 .55 -.18"/></filter>
+          </defs>
+          <rect width="600" height="220" fill="url(#gRock)"/>
+          <path d="M0 0 H210 C180 40 200 70 168 118 C150 150 170 190 150 220 H0Z" fill="#33454d"/>
+          <path d="M600 0 H380 C420 36 400 76 432 120 C452 152 436 192 456 220 H600Z" fill="#2f4048"/>
+          <path d="M165 220 V122 C165 62 225 28 300 28 C375 28 435 62 435 122 V220Z" fill="url(#gMouth)"/>
+          <path d="M165 122 C165 62 225 28 300 28 C375 28 435 62 435 122" fill="none" stroke="#4d6a4f" stroke-width="9" stroke-linecap="round" stroke-dasharray="40 14 22 10"/>
+          <circle cx="196" cy="74" r="9" fill="#4d6a4f"/><circle cx="214" cy="56" r="6" fill="#5b7c58"/><circle cx="404" cy="68" r="8" fill="#4d6a4f"/><circle cx="388" cy="52" r="5" fill="#5b7c58"/>
+          <rect width="600" height="220" filter="url(#gGrain)" opacity=".5"/>
+          <g fill="#B7D4E6">
+            <path class="drip" d="M262 54 q-5 9 0 12 q5 -3 0 -12z"/>
+            <path class="drip d2" d="M302 44 q-5 9 0 12 q5 -3 0 -12z"/>
+            <path class="drip d3" d="M345 54 q-5 9 0 12 q5 -3 0 -12z"/>
+          </g>
+          <ellipse cx="300" cy="208" rx="86" ry="9" fill="#6BA7A0" opacity=".3"/>
+          <ellipse class="ripple" cx="300" cy="196" rx="60" ry="6" fill="none" stroke="#B7D4E6" stroke-width="1.5"/>
+          <ellipse class="ripple r2" cx="262" cy="196" rx="44" ry="5" fill="none" stroke="#B7D4E6" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="body">
+        <h2>Gruta que Chora</h2>
+        <p class="hook">Uma gruta que nunca seca de pingar. A ciência explica, e a lenda também tem a sua versão.</p>
+        <details>
+          <summary><span class="more">Saiba mais</span><span class="less">Fechar</span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <h4>Por que ela "chora"</h4>
+          <p>Em cima da rocha corre uma nascente. A água atravessa a pedra e pinga pelo teto e pelas paredes da gruta, o ano todo. Fica no canto esquerdo da Praia da Sununga e dá para chegar a pé a partir da Praia do Lázaro.</p>
+          <h4>A lenda</h4>
+          <p>Contam que um monstro marinho vivia ali e levava as pessoas que passavam. O padre José de Anchieta teria jogado água benta na criatura, que fugiu para o mar, e abençoou a gruta para que ela pingasse para sempre. Existem outras versões, uma delas fala de uma serpente.</p>
+          <h4>Você sabia?</h4>
+          <ul>
+            <li>A Sununga é uma praia de "tombo", com ondas fortes. Ela é conhecida entre quem pratica skimboard e tem salva-vidas.</li>
+            <li>Por causa das ondas, o lugar é para ver e fotografar. Não é praia para banho, ainda mais com criança pequena.</li>
+            <li>Alguns visitantes dizem que a gruta é pequena e pinga pouco. Como a água vem de uma nascente, deve variar com a chuva.</li>
+          </ul>
+          <div class="ask"><b>Para conversar:</b> será que a gruta pinga mais depois de um dia de chuva? Por quê?</div>
+        </details>
+      </div>
+    </article>
+
+    <!-- Aquário de Ubatuba -->
+    <article class="place glass t-aquario">
+      <div class="art" aria-hidden="true">
+        <svg viewBox="0 0 600 220" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="aWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E5A6E"/><stop offset="1" stop-color="#0D2B45"/></linearGradient>
+            <linearGradient id="aRay" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          </defs>
+          <rect width="600" height="220" fill="url(#aWater)"/>
+          <polygon points="80,0 140,0 90,220 10,220" fill="url(#aRay)"/>
+          <polygon points="210,0 290,0 250,220 150,220" fill="url(#aRay)" opacity=".7"/>
+          <polygon points="360,0 410,0 400,220 320,220" fill="url(#aRay)" opacity=".6"/>
+          <path d="M0 196 C80 184 150 206 240 194 C330 182 400 206 480 194 C530 188 570 196 600 192 V220 H0Z" fill="#DCC8AA" opacity=".4"/>
+          <path d="M60 200 C54 170 70 150 62 126 M74 200 C80 172 66 154 76 134" fill="none" stroke="#6BA7A0" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+          <g class="fish"><g transform="translate(170 78)"><ellipse cx="0" cy="0" rx="22" ry="11" fill="#DCC8AA"/><path d="M-20 0 L-36 -11 L-36 11Z" fill="#DCC8AA"/><circle cx="11" cy="-2" r="2.2" fill="#0D2B45"/></g></g>
+          <g class="fish f2"><g transform="translate(330 132) scale(-1 1)"><ellipse cx="0" cy="0" rx="26" ry="12" fill="#6BA7A0"/><path d="M-24 0 L-42 -12 L-42 12Z" fill="#6BA7A0"/><circle cx="13" cy="-2" r="2.4" fill="#0D2B45"/></g></g>
+          <g class="fish"><g transform="translate(260 40)"><ellipse cx="0" cy="0" rx="14" ry="7" fill="#B7D4E6"/><path d="M-13 0 L-24 -7 L-24 7Z" fill="#B7D4E6"/><circle cx="7" cy="-1" r="1.6" fill="#0D2B45"/></g></g>
+          <g fill="none" stroke="#B7D4E6" stroke-width="1.6">
+            <circle class="bub" cx="236" cy="190" r="5"/><circle class="bub b2" cx="252" cy="196" r="3"/>
+            <circle class="bub b3" cx="396" cy="192" r="6"/><circle class="bub b4" cx="120" cy="196" r="4"/>
+          </g>
+          <g transform="translate(496 124)">
+            <path d="M-26 -8 q-18 30 -6 56 q8 -10 10 -30z" fill="#0a1520"/>
+            <path d="M26 -8 q18 30 6 56 q-8 -10 -10 -30z" fill="#0a1520"/>
+            <ellipse cx="0" cy="6" rx="26" ry="46" fill="#0a1520"/>
+            <ellipse cx="0" cy="12" rx="17" ry="35" fill="#EAF2F6"/>
+            <path d="M-17 4 Q0 14 17 4" fill="none" stroke="#0a1520" stroke-width="5"/>
+            <path d="M-16 20 Q0 30 16 20" fill="none" stroke="#0a1520" stroke-width="4"/>
+            <circle cx="0" cy="-52" r="18" fill="#0a1520"/>
+            <path d="M-10 -50 Q0 -36 10 -50" fill="none" stroke="#EAF2F6" stroke-width="3.5"/>
+            <circle cx="-7" cy="-56" r="2" fill="#fff"/><circle cx="7" cy="-56" r="2" fill="#fff"/>
+            <path d="M-5 -49 L0 -41 L5 -49Z" fill="#DCC8AA"/>
+            <ellipse cx="-11" cy="52" rx="9" ry="3.5" fill="#DCC8AA"/><ellipse cx="11" cy="52" rx="9" ry="3.5" fill="#DCC8AA"/>
+          </g>
+        </svg>
+      </div>
+      <div class="body">
+        <h2>Aquário de Ubatuba</h2>
+        <p class="hook">Um passeio para olhar de perto bichos do mar, e para descobrir por que alguns pinguins vêm parar nas nossas praias.</p>
+        <details>
+          <summary><span class="more">Saiba mais</span><span class="less">Fechar</span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <h4>A história</h4>
+          <p>O aquário abriu em fevereiro de 2002, no Itaguá, ao lado da Praça da Baleia. O fundador, Hugo Gallo Neto, trabalha com a ideia de aprender se divertindo, que ele chama de "edutainment". Hoje o circuito tem 17 recintos, mais de 350 animais e cerca de 100 espécies, segundo o próprio aquário.</p>
+          <h4>Os pinguins</h4>
+          <p>No Pinguinário vivem pinguins-de-Magalhães que foram resgatados nas praias da região. As crianças podem participar da alimentação deles.</p>
+          <h4>Você sabia?</h4>
+          <ul>
+            <li>Esses pinguins moram bem ao sul, na Argentina e no Chile. No inverno nadam para o norte atrás de comida, e alguns chegam cansados às praias do Brasil.</li>
+            <li>O aquário também tem centro de pesquisa e cuida de animais marinhos feridos, como aves, focas e golfinhos.</li>
+            <li>Uma reportagem regional diz que ele foi pioneiro no tanque de toque no Brasil, sempre com um monitor por perto.</li>
+          </ul>
+          <div class="ask"><b>Para conversar:</b> por que será que pinguins que vivem no frio vão ficando mais para o norte no inverno?</div>
+        </details>
+      </div>
+    </article>
+
+    <!-- Praia de Santa Rita -->
+    <article class="place glass t-rita">
+      <div class="art" aria-hidden="true">
+        <svg viewBox="0 0 600 220" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="rSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B7D4E6"/><stop offset=".4" stop-color="#e9e0cc"/><stop offset=".41" stop-color="#6BA7A0"/><stop offset="1" stop-color="#1E5A6E"/></linearGradient>
+            <radialGradient id="rSun"><stop offset="0" stop-color="#fff6dc"/><stop offset="1" stop-color="#fff6dc" stop-opacity="0"/></radialGradient>
+          </defs>
+          <rect width="600" height="220" fill="url(#rSky)"/>
+          <circle cx="170" cy="62" r="70" fill="url(#rSun)"/>
+          <circle cx="170" cy="62" r="20" fill="#fff6dc"/>
+          <path d="M0 90 C60 60 110 74 170 84 C230 94 280 66 350 84 C420 102 480 70 600 88 V92 H0Z" fill="#1E5A6E" opacity=".75"/>
+          <path d="M300 92 C340 70 380 78 420 92Z" fill="#0D2B45" opacity=".7"/>
+          <g stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none">
+            <path class="glint" d="M120 120 h34"/><path class="glint g2" d="M220 134 h46"/><path class="glint" d="M310 112 h28"/><path class="glint g2" d="M360 146 h50"/><path class="glint" d="M80 156 h40"/>
+          </g>
+          <path d="M0 220 V176 C70 160 150 178 230 196 C270 205 300 212 330 220Z" fill="#DCC8AA"/>
+          <path d="M0 176 C70 160 150 178 230 196 C270 205 300 212 330 220" fill="none" stroke="#fff" stroke-width="5" opacity=".85" stroke-linecap="round"/>
+          <path d="M600 0 V220 H430 C460 190 440 150 470 120 C490 98 480 50 520 20 C540 6 560 0 600 0Z" fill="#2b3b43"/>
+          <path d="M470 120 C490 98 480 50 520 20" fill="none" stroke="#4d6a4f" stroke-width="10" stroke-linecap="round" stroke-dasharray="26 10"/>
+          <g fill="#F2EADB">
+            <rect x="500" y="64" width="46" height="9" rx="2"/><rect x="490" y="80" width="46" height="9" rx="2"/>
+            <rect x="480" y="96" width="46" height="9" rx="2"/><rect x="470" y="112" width="46" height="9" rx="2"/>
+            <rect x="460" y="128" width="46" height="9" rx="2"/><rect x="450" y="144" width="46" height="9" rx="2"/>
+            <rect x="440" y="160" width="46" height="9" rx="2"/>
+          </g>
+          <g fill="#c9bda5">
+            <rect x="500" y="73" width="46" height="3" rx="1"/><rect x="490" y="89" width="46" height="3" rx="1"/><rect x="480" y="105" width="46" height="3" rx="1"/>
+            <rect x="470" y="121" width="46" height="3" rx="1"/><rect x="460" y="137" width="46" height="3" rx="1"/><rect x="450" y="153" width="46" height="3" rx="1"/>
+          </g>
+          <path d="M440 156 L546 58" stroke="#B7D4E6" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="body">
+        <h2>Praia de Santa Rita</h2>
+        <p class="hook">Uma prainha escondida que se chega por uma escadaria, com mar calmo e transparente.</p>
+        <details>
+          <summary><span class="more">Saiba mais</span><span class="less">Fechar</span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <h4>Como ela é</h4>
+          <p>Santa Rita é pequena, cercada de costões de pedra e Mata Atlântica, com vista para a baía e para as ilhas de Ubatuba. É famosa pela escadaria que desce até a areia. A entrada é por dentro de um condomínio, mas o acesso para visitantes é livre. Outro caminho é a trilha que sai do canto esquerdo da Praia do Perequê-Mirim.</p>
+          <h4>Você sabia?</h4>
+          <ul>
+            <li>Não tem quiosque nem barraca. O que a família quiser comer e beber precisa ir na bolsa.</li>
+            <li>As vagas para visitantes ficam na subida entre a Praia da Enseada e o Perequê-Mirim. Em dia de sol e fim de semana lota, e o feriado pesa ainda mais, então o melhor é chegar cedo.</li>
+            <li>A praia costuma receber bandeira verde, um selo de boa qualidade da água.</li>
+          </ul>
+          <div class="ask"><b>Para conversar:</b> por que o mar aqui é tão calmo e na Sununga, que fica a poucos quilômetros, as ondas são fortes? Uma pista: olhem o formato da praia e das pedras.</div>
+        </details>
+      </div>
+    </article>
+
+    <p class="fine">Ubatuba foi fundada em 28 de outubro de 1638. O nome vem do tupi e, segundo a tradição, quer dizer "muitas canoas".</p>
+  </section>
+
+  <footer>Informações levantadas em 6 de outubro de 2026. Confirme preços e horários antes de ir.</footer>
+</main>
+
+<script>
+(function(){
+  /* ---------- Ícones de tempo ---------- */
+  function wxType(ch){ return ch>=60 ? 'rain' : ch>=40 ? 'partly' : 'sun'; }
+  function wxLabel(ch){ return ch>=60 ? 'chuva provável' : ch>=40 ? 'nublado, chuva possível' : 'tempo aberto'; }
+  function wxIcon(ch,size){
+    var s=size||30, t=wxType(ch);
+    var cloud='<path d="M7 18.5h9.6a3.6 3.6 0 0 0 .4-7.2A5.2 5.2 0 0 0 7.3 10 4.2 4.2 0 0 0 7 18.5z" fill="#B7D4E6"/>';
+    var inner='';
+    if(t==='sun'){
+      inner='<circle cx="12" cy="12" r="4.6" fill="#F2D9A6"/><g stroke="#F2D9A6" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.8v2.2M12 19v2.2M2.8 12H5M19 12h2.2M5.5 5.5l1.6 1.6M16.9 16.9l1.6 1.6M18.5 5.5l-1.6 1.6M7.1 16.9l-1.6 1.6"/></g>';
+    } else if(t==='partly'){
+      inner='<circle cx="16.5" cy="7.5" r="3.6" fill="#F2D9A6"/>'+cloud.replace('M7 18.5','M5 20.5').replace('9.6a3.6','9.6a3.6');
+      inner='<circle cx="16.8" cy="7.2" r="3.7" fill="#F2D9A6"/><path d="M6 19h9.6a3.4 3.4 0 0 0 .4-6.8A4.9 4.9 0 0 0 6.4 11 4 4 0 0 0 6 19z" fill="#B7D4E6"/>';
+    } else {
+      inner='<path d="M7 15h9.6a3.4 3.4 0 0 0 .4-6.8A4.9 4.9 0 0 0 7.4 7 4 4 0 0 0 7 15z" fill="#8FB0C6"/><g stroke="#B7D4E6" stroke-width="1.9" stroke-linecap="round"><path d="M8.5 17.6l-1 2.6M12.5 17.6l-1 2.6M16.5 17.6l-1 2.6"/></g>';
+    }
+    return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" role="img" aria-label="'+wxLabel(ch)+'">'+inner+'</svg>';
+  }
+
+  /* ---------- Dados ---------- */
+  var dias=[
+    {id:'sab',nome:'Sábado',data:'10 de outubro',min:20.0,max:26.1,ch:75,
+     stops:[
+       {h:'Ao chegar',p:'tarde',t:'Chegada e passeio de lancha',x:'O horário e o valor ficam com o operador. Com chuva provável, vale confirmar se o passeio sai.',chips:[['Todos','who'],['Valor a preencher','']]},
+       {h:'16h às 17h45',p:'tarde',t:'Praia de Santa Rita',x:'Mar calmo, bom para o pequeno. Não tem quiosque, então levem água e lanche. Fica a uns 20 a 25 minutos da base.',chips:[['Todos','who'],['Gratuita','free'],['2h','']]}
+     ]},
+    {id:'dom',nome:'Domingo',data:'11 de outubro',min:18.6,max:25.1,ch:65,
+     stops:[
+       {h:'8h30',p:'manha',t:'Gruta que Chora',x:'Cerca de 20 minutos de carro até a Praia do Lázaro e mais 30 a pé pela areia até a gruta. A volta para a base fica por volta das 11h30.',chips:[['Vinical e irmã','who'],['Gratuita','free'],['3h no total','']]},
+       {h:'9h às 11h30',p:'manha',t:'Praia do Perequê-Açu',x:'Mar manso, orla de quase 2 km com quiosques e sombra. Dá para ir a pé, sem carro.',chips:[['Pais e irmão','who'],['Gratuita','free']]},
+       {h:'12h30',p:'tarde',t:'Almoço juntos',x:'Em um quiosque da orla do Perequê-Açu, com todo mundo reunido de novo.',chips:[['Todos','who']]},
+       {h:'Tarde',p:'tarde',t:'Livre, ou reserva do sábado',x:'Se Santa Rita não rolou no sábado por causa da chuva, este é o horário dela.',chips:[['Plano B','']],reserva:true}
+     ]},
+    {id:'seg',nome:'Segunda',data:'12 de outubro',min:19.0,max:22.4,ch:45,feriado:true,
+     stops:[
+       {h:'10h',p:'manha',t:'Aquário de Ubatuba',x:'Abre às 10h, segundo uma fonte, então confirmem. É feriado de Nossa Senhora Aparecida, por isso o melhor é chegar na abertura. Fica no Itaguá, a uns 20 minutos da base, e a visita leva de 2h30 a 3h.',chips:[['Todos','who'],['Coberto',''],['R$ 30 a R$ 60 por pessoa','']]},
+       {h:'13h',p:'tarde',t:'Almoço no Itaguá',x:'O calçadão do Itaguá tem restaurantes para família. O Perequim, por exemplo, tem dois playgrounds de madeira à beira-mar.',chips:[['Todos','who']]},
+       {h:'Depois',p:'tarde',t:'Volta para casa',x:'Em feriado, a saída do litoral costuma pegar trânsito pesado. Vale sair cedo ou deixar para depois do jantar.',chips:[['Dica','']],reserva:true}
+     ]}
+  ];
+
+  function temp(d,p){ var r=d.max-d.min; return Math.round(p==='manha' ? d.min+0.4*r : d.max-0.4); }
+
+  /* ---------- Faixa de tempo no topo ---------- */
+  document.getElementById('strip').innerHTML = dias.map(function(d){
+    return '<div class="tile"><div class="t-top"><b>'+d.nome+'</b>'+wxIcon(d.ch,30)+'</div>'
+      +'<div class="deg">'+Math.round(d.min)+'° a '+Math.round(d.max)+'°</div>'
+      +'<div class="rain">'+d.ch+'% de chuva</div>'
+      +(d.feriado?'<div class="hol">Feriado</div>':'')+'</div>';
+  }).join('');
+
+  /* ---------- Roteiro ---------- */
+  document.getElementById('days').innerHTML = dias.map(function(d){
+    var stops = d.stops.map(function(s){
+      var chips = s.chips.map(function(c){ return '<span class="chip '+c[1]+'">'+c[0]+'</span>'; }).join('');
+      return '<div class="stop'+(s.reserva?' reserva':'')+'">'
+        +'<div class="hora">'+s.h+'</div>'
+        +'<div><h3>'+s.t+'</h3><p>'+s.x+'</p><div class="chips">'+chips+'</div></div>'
+        +'<div class="wx" title="Previsão do dia: '+wxLabel(d.ch)+'">'+wxIcon(d.ch,30)+'<span>≈'+temp(d,s.p)+'°</span></div>'
+        +'</div>';
+    }).join('');
+    return '<article class="day glass"><div class="day-head"><div><h2>'+d.nome+'</h2><div class="sub">'+d.data+(d.feriado?', feriado':'')+'</div></div>'
+      +'<div class="day-wx">'+wxIcon(d.ch,34)+'<div><strong>'+Math.round(d.min)+'° a '+Math.round(d.max)+'°</strong><br><span>'+d.ch+'% de chance de chuva</span></div></div></div>'
+      +stops+'</article>';
+  }).join('');
+
+  /* ---------- Custos ---------- */
+  var custos=[
+    {id:'lancha',t:'Passeio de lancha',q:'Sábado, 5 pessoas',
+      ing:{v:0,g:'preencher'},est:{v:0,g:'conferir'},ali:{v:60,g:'estimativa'},
+      n:'Peça ao operador o valor para adultos e crianças e preencha no campo de passeio.'},
+    {id:'rita',t:'Praia de Santa Rita',q:'Sábado, 5 pessoas',
+      ing:{v:0,g:'pesquisado'},est:{v:0,g:'conferir'},ali:{v:120,g:'estimativa'},
+      n:'A praia é gratuita e não tem quiosque. O valor de alimentação é de lanche comprado antes no mercado.'},
+    {id:'gruta',t:'Gruta que Chora',q:'Domingo de manhã, Vinical e irmã',
+      ing:{v:0,g:'pesquisado'},est:{v:20,g:'estimativa'},ali:{v:40,g:'estimativa'},
+      n:'A visita é gratuita. O estacionamento perto da Praia do Lázaro é um valor meu, pode variar.'},
+    {id:'pereque',t:'Perequê-Açu e almoço de domingo',q:'Domingo, pais e irmão, e almoço com todos',
+      ing:{v:0,g:'pesquisado'},est:{v:0,g:'estimativa'},ali:{v:250,g:'estimativa'},
+      n:'Sem carro e sem ingresso. A alimentação soma um lanche da manhã e o almoço para as 5 pessoas.'},
+    {id:'aquario',t:'Aquário de Ubatuba',q:'Segunda, 5 pessoas',
+      ing:{v:240,g:'pesquisado'},est:{v:15,g:'estimativa'},ali:{v:210,g:'estimativa'},
+      n:'Ingresso: 3 inteiras a R$ 60 e 2 meias a R$ 30. As fontes variam de R$ 30 a R$ 60, e existe pacote família. Confirme no site do aquário.'}
+  ];
+  var inicial=custos.map(function(r){return {id:r.id,ing:r.ing.v,est:r.est.v,ali:r.ali.v};});
+  var KEY='ubatuba-custos-v1';
+  function load(){ try{ var s=localStorage.getItem(KEY); if(!s) return; var o=JSON.parse(s);
+    custos.forEach(function(r){ var x=o[r.id]; if(!x) return; ['ing','est','ali'].forEach(function(k){ if(typeof x[k]==='number') r[k].v=x[k]; }); }); }catch(e){} }
+  function save(){ try{ var o={}; custos.forEach(function(r){ o[r.id]={ing:r.ing.v,est:r.est.v,ali:r.ali.v}; }); localStorage.setItem(KEY,JSON.stringify(o)); }catch(e){} }
+  function brl(n){ return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}); }
+  var tagTxt={pesquisado:'pesquisado',estimativa:'estimativa',preencher:'a preencher',conferir:'conferir'};
+  var campos=[['ing','Passeio ou ingresso'],['est','Estacionamento'],['ali','Alimentação']];
+
+  function build(){
+    document.getElementById('costs').innerHTML = custos.map(function(r){
+      var f = campos.map(function(c){
+        var o=r[c[0]];
+        return '<div class="field"><label for="'+r.id+'-'+c[0]+'">'+c[1]+' <span class="tag '+o.g+'">'+tagTxt[o.g]+'</span></label>'
+          +'<div class="box"><span>R$</span><input id="'+r.id+'-'+c[0]+'" data-id="'+r.id+'" data-k="'+c[0]+'" type="number" inputmode="numeric" min="0" step="5" value="'+o.v+'"></div></div>';
+      }).join('');
+      return '<article class="cost glass"><div class="cost-head"><h3>'+r.t+'</h3><span class="when">'+r.q+'</span></div>'
+        +'<div class="fields">'+f+'</div>'
+        +'<div class="sum"><p class="nota">'+r.n+'</p><b id="sum-'+r.id+'"></b></div></article>';
+    }).join('');
+    document.querySelectorAll('#costs input').forEach(function(inp){
+      inp.addEventListener('input',function(){
+        var r=custos.filter(function(x){return x.id===inp.dataset.id;})[0];
+        var v=parseFloat(inp.value); r[inp.dataset.k].v = isNaN(v)||v<0 ? 0 : v;
+        if(r[inp.dataset.k].g==='preencher' && r[inp.dataset.k].v>0) r[inp.dataset.k].g='estimativa';
+        totals(); save();
+      });
+    });
+    totals();
+  }
+  function totals(){
+    var t={ing:0,est:0,ali:0};
+    custos.forEach(function(r){
+      var s=r.ing.v+r.est.v+r.ali.v; document.getElementById('sum-'+r.id).textContent=brl(s);
+      t.ing+=r.ing.v; t.est+=r.est.v; t.ali+=r.ali.v;
+    });
+    var all=t.ing+t.est+t.ali;
+    document.getElementById('totalGeral').textContent=brl(all);
+    document.getElementById('break').innerHTML=
+      '<span class="chip">Ingressos e passeios '+brl(t.ing)+'</span><span class="chip">Estacionamento '+brl(t.est)+'</span><span class="chip">Alimentação '+brl(t.ali)+'</span><span class="chip who">Cerca de '+brl(all/5)+' por pessoa</span>';
+  }
+  document.getElementById('reset').addEventListener('click',function(){
+    inicial.forEach(function(i){ var r=custos.filter(function(x){return x.id===i.id;})[0]; r.ing.v=i.ing; r.est.v=i.est; r.ali.v=i.ali; });
+    custos[0].ing.g='preencher';
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    build();
+  });
+  load(); build();
+
+  /* ---------- Abas ---------- */
+  var tabs=[].slice.call(document.querySelectorAll('[role="tab"]'));
+  function show(tab){
+    tabs.forEach(function(t){
+      var on=t===tab; t.setAttribute('aria-selected',on); t.tabIndex=on?0:-1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden=!on;
+    });
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  tabs.forEach(function(t,i){
+    t.addEventListener('click',function(){ show(t); });
+    t.addEventListener('keydown',function(e){
+      var n = e.key==='ArrowRight' ? (i+1)%tabs.length : e.key==='ArrowLeft' ? (i+tabs.length-1)%tabs.length : -1;
+      if(n>-1){ e.preventDefault(); tabs[n].focus(); show(tabs[n]); }
+    });
+  });
+})();
+</script>
+</body>
+</html>
